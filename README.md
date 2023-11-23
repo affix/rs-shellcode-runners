@@ -27,6 +27,8 @@ cd rust-windows-shellcode-runner
 ## Usage
 Each method in the repository can be used as follows:
 
+### Basic Runner with CreateThread
+
 [CreateThread](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createthread): The CreateThread function is a part of the Windows API, primarily used for creating a thread to execute within the virtual address space of the calling process. When applied to running shellcode in memory, it offers a method to dynamically execute arbitrary code, often used in legitimate software as well as in various security research and exploitation scenarios.
 
 Navigate to `create-thread ` directory.
@@ -37,8 +39,9 @@ cargo build
 .\target\debug\create-thread.exe
 ```
 
+### Process Injection
 
-Process Injection with [CreateRemoteThread](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createremotethread): 
+[CreateRemoteThread](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createremotethread): 
 CreateRemoteThread is a function in the Windows API used to create a thread in the virtual address space of another process. Unlike CreateThread, which creates a thread in the same process, CreateRemoteThread allows for cross-process thread creation. This makes it particularly significant in various programming scenarios, including system monitoring, debugging, and certain types of malware activity.
 
 ```powershell
